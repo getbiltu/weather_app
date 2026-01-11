@@ -1,0 +1,238 @@
+/* ==============================
+   WeatherPulse - Final CSS
+   (Modern navbar + modern cards)
+================================ */
+
+/* Global polish */
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ------------------------------
+   Modern base theme (LIGHT)
+-------------------------------- */
+.bg-app {
+    background: radial-gradient(circle at top, #f8fbff, #eef4ff 50%, #f6f8ff);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ------------------------------
+   Navbar
+-------------------------------- */
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* ✅ Premium Navbar: teal → blue → orange */
+.navbar-app {
+    background: linear-gradient(90deg,
+        #0f766e 0%,
+        #0284c7 40%,
+        #2563eb 72%,
+        #ff7a00 100%
+    );
+    border-bottom: 1px solid rgba(255,255,255,0.22);
+}
+
+/* Brand logo */
+.brand-logo {
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+    border: 2px solid rgba(255, 122, 0, 0.55); /* ✅ orange accent ring */
+}
+
+/* Brand title */
+.brand-title {
+    font-size: 1.15rem;
+    letter-spacing: 0.3px;
+    color: #ffffff;
+}
+
+/* Force all navbar links text to white */
+.navbar-app .nav-link {
+    color: rgba(255,255,255,0.92) !important;
+}
+
+/* Nav icons */
+.nav-ico {
+    width: 22px;
+    height: 22px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+}
+
+/* Menu pill style */
+.nav-pills-style .nav-link {
+    color: rgba(255,255,255,0.92) !important;
+    padding: 10px 14px;
+    border-radius: 14px;
+    margin-left: 8px;
+    font-weight: 650;
+    transition: all 0.18s ease-in-out;
+    border: 1px solid rgba(255,255,255,0.0);
+}
+
+/* ✅ Hover gives smooth glow */
+.nav-pills-style .nav-link:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: 0 8px 18px rgba(255, 122, 0, 0.18);
+}
+
+/* ✅ Active pill: orange highlight + glow */
+.nav-pills-style .nav-link.active {
+    background: rgba(255, 122, 0, 0.26);
+    color: #ffffff !important;
+    font-weight: 800;
+    text-decoration: none;
+    border: 1px solid rgba(255, 122, 0, 0.65);
+    box-shadow:
+        0 10px 24px rgba(0,0,0,0.18),
+        0 0 0 3px rgba(255,122,0,0.18);
+}
+
+/* Logo & icons shadow */
+.navbar-brand img,
+.nav-link img {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+/* Icon hover animation */
+.nav-link img {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.nav-link:hover img {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.30);
+}
+
+/* ------------------------------
+   Footer
+-------------------------------- */
+.footer-app {
+    margin-top: auto;
+    background: rgba(255,255,255,0.75);
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+/* ------------------------------
+   Modern Cards (Soft Gradient + Hover Lift)
+-------------------------------- */
+.card {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.78));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+        0 12px 30px rgba(2, 6, 23, 0.08),
+        0 2px 6px rgba(2, 6, 23, 0.06);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 122, 0, 0.25);  /* ✅ orange accent on hover */
+    box-shadow:
+        0 18px 45px rgba(2, 6, 23, 0.14),
+        0 6px 14px rgba(2, 6, 23, 0.10),
+        0 0 0 3px rgba(255, 122, 0, 0.08);
+}
+
+.card-title,
+h4, h5 {
+    font-weight: 750;
+    letter-spacing: 0.2px;
+}
+
+.card-body p {
+    margin-bottom: 0.45rem;
+    color: rgba(15, 23, 42, 0.90);
+}
+
+/* Better card footer */
+.card-footer {
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    background: rgba(255,255,255,0.65);
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+}
+
+/* ------------------------------
+   Dashboard metric rows
+-------------------------------- */
+.metric-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    margin-bottom: 8px;
+}
+
+/* ------------------------------
+   Badges
+-------------------------------- */
+.bg-orange {
+    background-color: #ff7a00 !important;
+    color: white !important;
+}
+
+/* ------------------------------
+   Emoji animations (subtle & lightweight)
+-------------------------------- */
+.emoji-spin {
+    display: inline-block;
+    animation: spin 4s linear infinite;
+}
+
+.emoji-bounce {
+    display: inline-block;
+    animation: bounce 1.5s infinite;
+}
+
+.emoji-pulse {
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.form-label {
+    font-weight: 700;
+}
+
+/* Settings - last updated pill */
+.updated-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.08);
+    font-size: 0.9rem;
+    color: rgba(15, 23, 42, 0.80);
+}

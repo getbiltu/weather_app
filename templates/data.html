@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h4 class="mb-3">📊 Weather Analytics</h4>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body row g-2 align-items-end">
+
+    <div class="col-md-3">
+      <label class="form-label">City</label>
+      <select class="form-select" id="city">
+        <option value="ALL">All Cities</option>
+        {% for c in city_list %}
+          <option value="{{ c }}" {% if city == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label class="form-label">Metric</label>
+      <select class="form-select" id="metric">
+        <option value="temperature" {% if metric=="temperature" %}selected{% endif %}>Temperature (°C)</option>
+        <option value="humidity" {% if metric=="humidity" %}selected{% endif %}>Humidity (%)</option>
+        <option value="aqi" {% if metric=="aqi" %}selected{% endif %}>AQI</option>
+        <option value="rain_mm" {% if metric=="rain_mm" %}selected{% endif %}>Rain (mm)</option>
+        <option value="rain_probability" {% if metric=="rain_probability" %}selected{% endif %}>Rain Probability (%)</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">Quick Range</label>
+      <select class="form-select" id="hours">
+        <option value="1">Last 1 hour</option>
+        <option value="6">Last 6 hours</option>
+        <option value="24" selected>Last 1 day</option>
+        <option value="168">Last 7 days</option>
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">Start Date</label>
+      <input type="date" id="start" class="form-control">
+    </div>
+
+    <div class="col-md-2">
+      <label class="form-label">End Date</label>
+      <input type="date" id="end" class="form-control">
+    </div>
+
+    <div class="col-md-12 mt-2">
+      <button class="btn btn-primary" onclick="applyFilters()">Apply</button>
+      <button class="btn btn-outline-secondary" onclick="clearDates()">Clear Dates</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ✅ City-wise High/Low summary -->
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h5 class="mb-3">📌 City-wise High / Low (Selected Range)</h5>
+
+    {% if summary and summary|length > 0 %}
+      <div class="table-responsive">
+        <table class="table table-striped mb-0 align-middle">
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Low</th>
+              <th>High</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in summary %}
+              <tr>
+                <td class="fw-semibold">{{ s.city }}</td>
+                <td>{{ "%.2f"|format(s.low) if s.low is not none else "--" }}</td>
+                <td>{{ "%.2f"|format(s.high) if s.high is not none else "--" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-muted">No data available for this time range.</div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <canvas id="chart" height="110"></canvas>
+  </div>
+</div>
+
+<script>
+  const ROWS = {{ rows | tojson }};
+  const DEFAULT_METRIC = "{{ metric }}";
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/data.js"></script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h4 class="mb-3">🏙 City Management</h4>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="post" action="{{ url_for('cities') }}" class="row g-2">
+      <input type="hidden" name="action" value="add">
+
+      <div class="col-md-4">
+        <input class="form-control" name="city_name" placeholder="City name (e.g. Kolkata)">
+      </div>
+
+      <div class="col-md-3">
+        <input class="form-control" name="lat" placeholder="Latitude (optional)">
+      </div>
+
+      <div class="col-md-3">
+        <input class="form-control" name="lon" placeholder="Longitude (optional)">
+      </div>
+
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100">➕ Add</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>City</th>
+          <th>Lat</th>
+          <th>Lon</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for c in cities %}
+        <tr>
+          <td>{{ c[1] }}</td>
+          <td>{{ c[2] }}</td>
+          <td>{{ c[3] }}</td>
+          <td>
+            <form method="post" action="{{ url_for('cities') }}">
+              <input type="hidden" name="action" value="delete">
+              <input type="hidden" name="city_id" value="{{ c[0] }}">
+              <button class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

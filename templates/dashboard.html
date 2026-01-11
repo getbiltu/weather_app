@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div>
+    <h4 class="mb-0">📍 Live Weather</h4>
+    <small class="text-muted">Auto refresh every {{ refresh_seconds }} seconds</small>
+  </div>
+
+  <div class="d-flex gap-2 align-items-center">
+    <small class="text-muted" id="lastUpdated">Last updated: --</small>
+    <button class="btn btn-outline-light btn-sm" onclick="loadTiles()">🔄 Refresh</button>
+  </div>
+</div>
+
+<div id="loading" class="text-center py-5">
+  <div class="spinner-border" role="status"></div>
+  <p class="mt-2">Loading tiles...</p>
+</div>
+
+<div id="tiles" class="row g-3" style="display:none;"></div>
+
+<script>
+  const REFRESH_SECONDS = {{ refresh_seconds }};
+</script>
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

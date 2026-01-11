@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <link rel="icon" href="{{ url_for('static', filename='img/logo.png') }}" type="image/png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body class="bg-app">
+
+<!-- Top Nav -->
+<nav class="navbar navbar-expand-lg navbar-app shadow-sm">
+  <div class="container-fluid px-3">
+
+    <!-- Brand -->
+    <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
+      <img src="/static/img/logo.png" alt="logo" width="34" height="34" class="brand-logo">
+      <span class="brand-title">WeatherPulse</span>
+    </a>
+
+    <!-- Mobile Toggle -->
+    <button class="navbar-toggler text-white border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Menu -->
+    <div class="collapse navbar-collapse" id="navMenu">
+      <div class="navbar-nav ms-auto nav-pills-style">
+
+        <a class="nav-link d-flex align-items-center gap-2 {% if request.path == '/' %}active{% endif %}" href="/">
+          <img src="/static/img/icon_dashboard.png" class="nav-ico" alt="Dashboard">
+          Dashboard
+        </a>
+
+        <a class="nav-link d-flex align-items-center gap-2 {% if '/data' in request.path %}active{% endif %}" href="/data">
+          <img src="/static/img/icon_data.png" class="nav-ico" alt="Data">
+          Data
+        </a>
+
+        <a class="nav-link d-flex align-items-center gap-2 {% if '/cities' in request.path %}active{% endif %}" href="/cities">
+          <img src="/static/img/icon_cities.png" class="nav-ico" alt="Cities">
+          Cities
+        </a>
+
+        <a class="nav-link d-flex align-items-center gap-2 {% if '/settings' in request.path %}active{% endif %}" href="/settings">
+          <img src="/static/img/icon_settings.png" class="nav-ico" alt="Settings">
+          Settings
+        </a>
+
+      </div>
+    </div>
+
+  </div>
+</nav>
+
+<!-- Content -->
+<main class="container my-4">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="footer-app mt-auto">
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center py-3">
+    <div class="text-muted small">
+      🍓 Running on <b>Raspberry Pi Zero W</b>
+    </div>
+    <div class="text-muted small">
+      👨‍💻 Created by <b>Biltu</b>
+    </div>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
