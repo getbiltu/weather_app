@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <div>
+    <h4 class="mb-0">⚙️ Settings</h4>
+    <small class="text-muted">Configure scheduler and dashboard refresh</small>
+
+    {% if updated_at_iso %}
+    <div class="mt-2">
+      <span class="updated-pill">
+        🕒 Last updated:
+        <b id="updatedAtText">--</b>
+      </span>
+
+      <!-- ISO string hidden -->
+      <span id="updatedAtRaw" class="d-none">{{ updated_at_iso | default("", true) }}</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row g-4 mt-2">
+
+  <!-- Settings Form -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body">
+
+        <h5 class="card-title mb-3">🛠 Application Settings</h5>
+
+        <form method="post" action="{{ url_for('settings') }}" class="row g-3" id="settingsForm">
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">⏱ Data Log Interval (minutes)</label>
+            <input
+              type="number"
+              class="form-control"
+              name="interval"
+              min="1"
+              value="{{ interval }}"
+              required
+            />
+            <div class="form-text">How often to log data into database.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">🔄 Dashboard Refresh (seconds)</label>
+            <input
+              type="number"
+              class="form-control"
+              name="dashboard_refresh_seconds"
+              min="10"
+              value="{{ dash_refresh }}"
+              required
+            />
+            <div class="form-text">Tiles refresh in background without page reload.</div>
+          </div>
+
+          <!-- ✅ Data Freshness -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">📌 Data Freshness (minutes)</label>
+            <input
+              type="number"
+              class="form-control"
+              name="data_freshness_minutes"
+              min="1"
+              value="{{ data_freshness }}"
+              required
+            />
+            <div class="form-text">
+              If latest DB data is newer than this, dashboard uses DB else fetches API.
+            </div>
+          </div>
+
+          <div class="col-12 d-flex gap-2 mt-2">
+
+            <!-- Save button with spinner -->
+            <button type="submit" id="saveBtn" class="btn btn-primary px-4">
+              <span id="saveText">💾 Save Changes</span>
+              <span
+                id="saveSpinner"
+                class="spinner-border spinner-border-sm ms-2 d-none"
+                role="status"
+                aria-hidden="true"
+              ></span>
+            </button>
+
+            <a href="/" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduler Status -->
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+
+        <h5 class="card-title mb-3">
+          ⚙️ Scheduler Status <span class="emoji-bounce">⏰</span>
+        </h5>
+
+        <div class="p-3 rounded-4 border bg-white bg-opacity-50">
+
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-semibold">Status</span>
+
+            {% if scheduler.status == "Running" %}
+              <span class="badge bg-success px-3 py-2">🟢 Running</span>
+            {% elif scheduler.status == "Paused" %}
+              <span class="badge bg-warning text-dark px-3 py-2">⏸ Paused</span>
+            {% else %}
+              <span class="badge bg-danger px-3 py-2">🔴 Stopped</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Next Run</span>
+
+            <!-- Will be filled by JS -->
+            <span class="text-muted small" id="nextRunText">--</span>
+
+            <!-- ISO string hidden -->
+            <span id="nextRunRaw" class="d-none">{{ scheduler.next_run or "" }}</span>
+          </div>
+
+          <!-- ✅ Enable/Disable Button -->
+          <div class="mt-3 d-flex justify-content-end">
+            <form method="post" action="{{ url_for('scheduler_toggle') }}">
+              {% if scheduler.paused %}
+                <input type="hidden" name="action" value="resume">
+                <button type="submit" class="btn btn-success btn-sm px-3">
+                  ▶️ Enable Scheduler
+                </button>
+              {% else %}
+                <input type="hidden" name="action" value="pause">
+                <button type="submit" class="btn btn-danger btn-sm px-3">
+                  ⏸ Disable Scheduler
+                </button>
+              {% endif %}
+            </form>
+          </div>
+
+        </div>
+
+        <hr />
+
+        <div class="small text-muted">
+          ✅ Scheduler runs in background using APScheduler.<br />
+          Changing the interval will reschedule jobs automatically.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ✅ Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div
+    id="saveToast"
+    class="toast align-items-center text-bg-success border-0"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+  >
+    <div class="d-flex">
+      <div class="toast-body">✅ Settings saved successfully!</div>
+      <button
+        type="button"
+        class="btn-close btn-close-white me-2 m-auto"
+        data-bs-dismiss="toast"
+        aria-label="Close"
+      ></button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    // ---------- Prevent double submit + show spinner ----------
+    const form = document.getElementById("settingsForm");
+    const btn = document.getElementById("saveBtn");
+    const spinner = document.getElementById("saveSpinner");
+    const text = document.getElementById("saveText");
+
+    if (form && btn) {
+      form.addEventListener("submit", function () {
+        btn.disabled = true;
+        if (spinner) spinner.classList.remove("d-none");
+        if (text) text.innerText = "Saving...";
+      });
+    }
+
+    // ---------- Convert times to browser timezone ----------
+    function formatLocalTime(iso) {
+      if (!iso) return "--";
+      iso = iso.trim();
+      if (!iso) return "--";
+
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return "--";
+
+      return (
+        d.toLocaleString() +
+        " (" +
+        Intl.DateTimeFormat().resolvedOptions().timeZone +
+        ")"
+      );
+    }
+
+    // ✅ Last updated
+    const updatedAtRaw = document.getElementById("updatedAtRaw");
+    const updatedAtText = document.getElementById("updatedAtText");
+    if (updatedAtRaw && updatedAtText) {
+      updatedAtText.innerText = formatLocalTime(updatedAtRaw.textContent);
+    }
+
+    // ✅ Next Run
+    const nextRunRaw = document.getElementById("nextRunRaw");
+    const nextRunText = document.getElementById("nextRunText");
+    if (nextRunRaw && nextRunText) {
+      nextRunText.innerText = formatLocalTime(nextRunRaw.textContent);
+    }
+
+    // ---------- Toast ----------
+    {% if saved %}
+      const toastEl = document.getElementById("saveToast");
+      if (toastEl) {
+        const toast = new bootstrap.Toast(toastEl, { delay: 2500 });
+        toast.show();
+      }
+    {% endif %}
+
+  });
+</script>
+
+{% endblock %}
