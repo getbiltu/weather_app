@@ -87,6 +87,10 @@ def parse_float(val):
     except ValueError:
         return None
 
+def valid_lat_lon(lat, lon):
+    if lat is None or lon is None:
+        return False
+    return (-90.0 <= lat <= 90.0) and (-180.0 <= lon <= 180.0)
 
 # ---------------- GEO HELPERS ----------------
 def geocode_city_openmeteo(name: str):
@@ -522,47 +526,80 @@ def settings():
 
 @app.route("/cities", methods=["GET", "POST"])
 def cities():
+    msg = request.args.get("msg")
+    msg_type = request.args.get("type", "info")
+
     with get_db() as conn, conn.cursor() as cur:
 
         if request.method == "POST":
             action = request.form.get("action", "")
 
+            # ✅ ADD CITY (Smart + Validated)
             if action == "add":
                 city_name = (request.form.get("city_name") or "").strip()
                 lat_val = parse_float(request.form.get("lat"))
                 lon_val = parse_float(request.form.get("lon"))
 
-                # Case 3: all three given
+                # -----------------------------
+                # Case 3: ALL three present -> use directly (no search)
+                # -----------------------------
                 if city_name and lat_val is not None and lon_val is not None:
+
+                    # ✅ Validate lat/lon
+                    if not (-90 <= lat_val <= 90):
+                        return redirect(url_for("cities", msg="❌ Invalid latitude. Must be between -90 and 90.", type="danger"))
+                    if not (-180 <= lon_val <= 180):
+                        return redirect(url_for("cities", msg="❌ Invalid longitude. Must be between -180 and 180.", type="danger"))
+
                     final_city = city_name
                     final_lat = lat_val
                     final_lon = lon_val
 
-                # Case 1: city name only
+                # -----------------------------
+                # Case 1: Only city name -> search lat/lon
+                # -----------------------------
                 elif city_name and (lat_val is None or lon_val is None):
                     found_lat, found_lon = geocode_city_openmeteo(city_name)
+
                     if found_lat is None or found_lon is None:
-                        print("Could not geocode:", city_name)
-                        return redirect(url_for("cities"))
+                        return redirect(url_for("cities", msg=f"❌ City '{city_name}' not found!", type="danger"))
+
+                    # ✅ Validate found values (safety)
+                    if not (-90 <= found_lat <= 90) or not (-180 <= found_lon <= 180):
+                        return redirect(url_for("cities", msg="❌ Geocoding returned invalid coordinates.", type="danger"))
 
                     final_city = city_name
                     final_lat = found_lat
                     final_lon = found_lon
 
-                # Case 2: lat/lon only
+                # -----------------------------
+                # Case 2: Only lat/lon -> reverse lookup city name
+                # -----------------------------
                 elif (not city_name) and (lat_val is not None and lon_val is not None):
+
+                    # ✅ Validate input
+                    if not (-90 <= lat_val <= 90):
+                        return redirect(url_for("cities", msg="❌ Invalid latitude. Must be between -90 and 90.", type="danger"))
+                    if not (-180 <= lon_val <= 180):
+                        return redirect(url_for("cities", msg="❌ Invalid longitude. Must be between -180 and 180.", type="danger"))
+
                     found_city = reverse_geocode_city_nominatim(lat_val, lon_val)
+
                     if not found_city:
-                        print("Could not reverse geocode:", lat_val, lon_val)
-                        return redirect(url_for("cities"))
+                        return redirect(url_for("cities", msg="❌ Could not detect city name from coordinates!", type="danger"))
 
                     final_city = found_city
                     final_lat = lat_val
                     final_lon = lon_val
 
                 else:
-                    return redirect(url_for("cities"))
+                    return redirect(url_for("cities", msg="❌ Please enter city name OR both lat/lon.", type="danger"))
 
+                # ✅ Check if already exists
+                cur.execute("SELECT 1 FROM cities WHERE name=%s", (final_city,))
+                exists = cur.fetchone()
+
+                # ✅ Insert / update
                 cur.execute("""
                     INSERT INTO cities (name, lat, lon)
                     VALUES (%s, %s, %s)
@@ -572,18 +609,32 @@ def cities():
                 """, (final_city, final_lat, final_lon))
 
                 conn.commit()
-                return redirect(url_for("cities"))
 
+                if exists:
+                    return redirect(url_for("cities", msg=f"ℹ️ City '{final_city}' already exists. Updated lat/lon.", type="warning"))
+
+                return redirect(url_for("cities", msg=f"✅ City '{final_city}' added successfully!", type="success"))
+
+            # ✅ DELETE CITY
             elif action == "delete":
                 city_id = request.form.get("city_id")
                 cur.execute("DELETE FROM cities WHERE id=%s", (city_id,))
                 conn.commit()
-                return redirect(url_for("cities"))
+                return redirect(url_for("cities", msg="🗑 City deleted successfully!", type="warning"))
 
+        # ✅ GET city list
         cur.execute("SELECT id, name, lat, lon FROM cities ORDER BY id DESC")
         cities_list = cur.fetchall()
 
-    return render_template("cities.html", title="Cities", cities=cities_list)
+    return render_template(
+        "cities.html",
+        title="Cities",
+        cities=cities_list,
+        msg=msg,
+        msg_type=msg_type
+    )
+
+
 
 
 if __name__ == "__main__":
